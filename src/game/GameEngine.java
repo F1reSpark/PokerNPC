@@ -68,7 +68,7 @@ public class GameEngine {
      */
     public GameEngine() {
         //0 (fullSpeed) to Integer.MAX_VALUE (~24 days)
-        gameSpeed = 350;
+        gameSpeed = 600;
         runGameContinuously = false;
 
         // Initialize the deck and shuffle it.
@@ -83,6 +83,7 @@ public class GameEngine {
 
         //listPlayersRemainingGame.add(new AdamsPlayer("BCA"));
         //listPlayersRemainingGame.add(new ManualPlayer("Manual"));
+        addCardAssassin(1);
         addConservativeNPCs(2);
         addSimpleNPCs(2);
         addRandomNPCs(0);
@@ -691,6 +692,15 @@ public class GameEngine {
             String tempName = "Random#" + i;
             // Add the random NPC player to the list of players still in the game.
             listPlayersRemainingGame.add(new RandomPlayer(tempName));
+        }
+    }
+
+    private void addCardAssassin(int numPlayers) {
+        for(int i = 0; i < numPlayers; i++) {
+            // Generate a unique name for each random NPC player.
+            String tempName = "CardAssassin#" + i;
+            // Add the CardAssassin NPC player to the list of players still in the game.
+            listPlayersRemainingGame.add(new CardAssassin(tempName));
         }
     }
 
