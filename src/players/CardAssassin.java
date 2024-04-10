@@ -9,7 +9,7 @@ public class CardAssassin extends Player {
     private int notedValue2 = 0;
     private int notedSuit1 = 0;
     private int notedSuit2 = 0;
-    private int handEval = 0;
+    private double handEval = 0;
 
     public CardAssassin(String name) {
         super(name);
@@ -36,7 +36,7 @@ public class CardAssassin extends Player {
         } else if (shouldAllIn()) {
             allIn();
         } else if (shouldRaise()) {
-            raise(getGameState().getTableMinBet() + handEval);
+            raise((int) (getGameState().getTableMinBet() * handEval));
         } else {
             if (shouldCall()) {
                 call();
@@ -88,7 +88,7 @@ public class CardAssassin extends Player {
 
     @Override
     protected boolean shouldCheck() {
-        if(getGameState().getNumRoundStage() == 0 || getGameState().getNumRoundStage() == 1){
+        if(getGameState().getNumRoundStage() <= 1){
             return true;
         }else {
             HandRanks myHand = evaluatePlayerHand();
@@ -96,11 +96,7 @@ public class CardAssassin extends Player {
                 case ROYAL_FLUSH, STRAIGHT_FLUSH, FOUR_OF_A_KIND, FULL_HOUSE, FLUSH, STRAIGHT, THREE_OF_A_KIND, TWO_PAIR:
                     return true;
                 case PAIR:
-                    if (getGameState().getNumRoundStage() == 0 || getGameState().getNumRoundStage() == 1 || getGameState().getNumRoundStage() == 2) {
-                        return true;
-                    } else return false;
-                case HIGH_CARD:
-                    if (getGameState().getNumRoundStage() == 1 || getGameState().getNumRoundStage() == 0) {
+                    if (getGameState().getNumRoundStage() < 4) {
                         return true;
                     } else return false;
                 default:
@@ -168,8 +164,8 @@ public class CardAssassin extends Player {
         protected boolean shouldAllIn () {
             HandRanks myHand = evaluatePlayerHand();
                 switch (myHand) {
-                    case ROYAL_FLUSH, STRAIGHT_FLUSH, FOUR_OF_A_KIND, FULL_HOUSE, FLUSH, STRAIGHT:
-                        if (getGameState().getNumRoundStage() != 0 && getGameState().getNumRoundStage() != 1) { return true; }
+                    case ROYAL_FLUSH, STRAIGHT_FLUSH, FOUR_OF_A_KIND:
+                        if (getGameState().getNumRoundStage() > 3) { return true; }
                         else{ return false; }
                     default:
                         return false;
@@ -180,31 +176,31 @@ public class CardAssassin extends Player {
             HandRanks myHand = evaluatePlayerHand();
                 switch (myHand) {
                     case ROYAL_FLUSH:
-                        handEval = 25;
+                        handEval = 4;
                         break;
                     case STRAIGHT_FLUSH:
-                        handEval = 22;
+                        handEval = 3;
                         break;
                     case FOUR_OF_A_KIND:
-                        handEval = 18;
+                        handEval = 2.5;
                         break;
                     case FULL_HOUSE:
-                        handEval = 15;
+                        handEval = 2;
                         break;
                     case FLUSH:
-                        handEval = 12;
+                        handEval = 1.75;
                         break;
                     case STRAIGHT:
-                        handEval = 10;
+                        handEval = 1.5;
                         break;
                     case THREE_OF_A_KIND:
-                        handEval = 8;
+                        handEval = 1.3;
                         break;
                     case TWO_PAIR:
-                        handEval = 5;
+                        handEval = 1.15;
                         break;
                     case PAIR:
-                        handEval = 3;
+                        handEval = 1.05;
                         break;
                     case HIGH_CARD:
                         if (getGameState().getNumRoundStage() == 0){
