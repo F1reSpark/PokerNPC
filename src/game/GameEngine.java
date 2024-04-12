@@ -83,8 +83,8 @@ public class GameEngine {
 
         //listPlayersRemainingGame.add(new AdamsPlayer("BCA"));
         //listPlayersRemainingGame.add(new ManualPlayer("Manual"));
-        addCardAssassin(1);
-        addConservativeNPCs(2);
+        addCardAssassin(3);
+        //addConservativeNPCs(2);
         addSimpleNPCs(2);
         addRandomNPCs(0);
         //addTempPlayers(2);

@@ -1,7 +1,11 @@
 package players;
 
+import game.Card;
+import game.Evaluator;
 import game.HandRanks;
 import game.Player;
+
+import java.util.ArrayList;
 
 public class CardAssassin extends Player {
 
@@ -9,15 +13,22 @@ public class CardAssassin extends Player {
     private int notedValue2 = 0;
     private int notedSuit1 = 0;
     private int notedSuit2 = 0;
-    private double handEval = 0;
+    private int handEval = 0;
+    private double betEval;
+    private boolean hasRaised;
+
+    private Evaluator evalTool;
 
     public CardAssassin(String name) {
         super(name);
+        evalTool = new Evaluator();
     }
 
     @Override
     protected void takePlayerTurn() {
         System.out.println("my hand is " + evaluatePlayerHand());
+        ArrayList<Card> pseudoList = new ArrayList<>();
+        System.out.println("The table has a " + evalTool.evaluatePlayerHand(getGameState().getTableCards(), pseudoList));
 //        HandRanks myHand = evaluatePlayerHand();
 //        switch (myHand) {
 //            case PAIR:
@@ -36,7 +47,10 @@ public class CardAssassin extends Player {
         } else if (shouldAllIn()) {
             allIn();
         } else if (shouldRaise()) {
-            raise((int) (getGameState().getTableMinBet() * handEval));
+            if(!hasRaised) {
+                hasRaised = true;
+                raise((int) (getGameState().getTableMinBet() * betEval));
+            } else call();
         } else {
             if (shouldCall()) {
                 call();
@@ -50,6 +64,7 @@ public class CardAssassin extends Player {
 
     @Override
     protected boolean shouldFold() {
+        HandRanks myHand = evaluatePlayerHand();
         if (getGameState().getNumRoundStage() != 0){
             if (notedValue1 == 2 && notedValue2 == 7 && notedSuit1 != notedSuit2) {
                 return true;
@@ -79,6 +94,16 @@ public class CardAssassin extends Player {
                 }
             }
         } else {
+            switch (myHand){
+                case HIGH_CARD:
+                    if(isBetActive() && getGameState().getNumRoundStage() > 2){
+                        return true;
+                    } else return false;
+                case PAIR:
+                    if (isBetActive() && getGameState().getNumRoundStage() > 3){
+                        return true;
+                    } else return false;
+            }
             return false;
         }
 
@@ -88,30 +113,40 @@ public class CardAssassin extends Player {
 
     @Override
     protected boolean shouldCheck() {
-        if(getGameState().getNumRoundStage() <= 1){
-            return true;
-        }else {
-            HandRanks myHand = evaluatePlayerHand();
-            switch (myHand) {
-                case ROYAL_FLUSH, STRAIGHT_FLUSH, FOUR_OF_A_KIND, FULL_HOUSE, FLUSH, STRAIGHT, THREE_OF_A_KIND, TWO_PAIR:
-                    return true;
-                case PAIR:
-                    if (getGameState().getNumRoundStage() < 4) {
+        ArrayList<Card> pseudoList = new ArrayList<>();
+        if(!isBetActive()) {
+            if (getGameState().getNumRoundStage() <= 1) {
+                return true;
+            } else {
+                HandRanks myHand = evaluatePlayerHand();
+                switch (myHand) {
+                    case ROYAL_FLUSH, STRAIGHT_FLUSH, FOUR_OF_A_KIND, FULL_HOUSE, FLUSH, STRAIGHT, THREE_OF_A_KIND, TWO_PAIR:
                         return true;
-                    } else return false;
-                default:
-                    return false;
+                    case PAIR:
+                        if (getGameState().getNumRoundStage() < 5) {
+                            return true;
+                        } else return false;
+                    default:
+                        return false;
+                }
             }
-        }
+        } else {
+            if(shouldCall()){
+                call();
+            }
+            return false;}
     }
 
     @Override
     protected boolean shouldCall() {
+        ArrayList<Card> pseudoList = new ArrayList<>();
         HandRanks myHand = evaluatePlayerHand();
         if (isBetActive()) {
             switch (myHand) {
                 case ROYAL_FLUSH, STRAIGHT_FLUSH, FOUR_OF_A_KIND, FULL_HOUSE, FLUSH, STRAIGHT, THREE_OF_A_KIND:
-                    return true;
+                    if (evalTool.evaluatePlayerHand(getGameState().getTableCards(), pseudoList) != evaluatePlayerHand()) {
+                        return true;
+                    } else return false;
                 case TWO_PAIR, PAIR:
                     if (getGameState().getNumRoundStage() < 2) {
                         return true;
@@ -132,6 +167,7 @@ public class CardAssassin extends Player {
     }
         @Override
         protected boolean shouldRaise () {
+            ArrayList<Card> pseudoList = new ArrayList<>();
             if (isBetActive()) {
                 return false;
             } else {
@@ -139,13 +175,13 @@ public class CardAssassin extends Player {
                 if (!shouldAllIn()) {
                     switch (myHand) {
                         case ROYAL_FLUSH, STRAIGHT_FLUSH, FOUR_OF_A_KIND, FULL_HOUSE, FLUSH, STRAIGHT, THREE_OF_A_KIND:
-                            if (getGameState().getNumRoundStage() > 1) {
+                            if (getGameState().getNumRoundStage() > 1 && evalTool.evaluatePlayerHand(getGameState().getTableCards(), pseudoList) != evaluatePlayerHand()) {
                                 return true;
                             } else {
                                 return false;
                             }
                         case TWO_PAIR, PAIR:
-                            if (getGameState().getNumRoundStage() > 2) {
+                            if (getGameState().getNumRoundStage() > 2 && evalTool.evaluatePlayerHand(getGameState().getTableCards(), pseudoList) != evaluatePlayerHand()){
                                 return true;
                             } else {
                                 return false;
@@ -167,43 +203,56 @@ public class CardAssassin extends Player {
                     case ROYAL_FLUSH, STRAIGHT_FLUSH, FOUR_OF_A_KIND:
                         if (getGameState().getNumRoundStage() > 3) { return true; }
                         else{ return false; }
+                        //maybe separate these to wait a little longer just in case
                     default:
                         return false;
                 }
         }
 
         private void evalHand () {
+            ArrayList<Card> pseudoList = new ArrayList<>();
             HandRanks myHand = evaluatePlayerHand();
+            if (evalTool.evaluatePlayerHand(getGameState().getTableCards(), pseudoList) != myHand) {
                 switch (myHand) {
                     case ROYAL_FLUSH:
-                        handEval = 4;
+                        betEval = 5.5;
+                        handEval = 10;
                         break;
                     case STRAIGHT_FLUSH:
-                        handEval = 3;
+                        betEval = 5;
+                        handEval = 9;
                         break;
                     case FOUR_OF_A_KIND:
-                        handEval = 2.5;
+                        betEval = 4.5;
+                        handEval = 8;
                         break;
                     case FULL_HOUSE:
-                        handEval = 2;
+                        betEval = 4;
+                        handEval = 7;
                         break;
                     case FLUSH:
-                        handEval = 1.75;
+                        betEval = 3.5;
+                        handEval = 6;
                         break;
                     case STRAIGHT:
-                        handEval = 1.5;
+                        betEval = 3;
+                        handEval = 5;
                         break;
                     case THREE_OF_A_KIND:
-                        handEval = 1.3;
+                        betEval = 2.5;
+                        handEval = 4;
                         break;
                     case TWO_PAIR:
-                        handEval = 1.15;
+                        betEval = 2;
+                        handEval = 3;
                         break;
                     case PAIR:
-                        handEval = 1.05;
+                        betEval = 1.5;
+                        handEval = 2;
                         break;
                     case HIGH_CARD:
-                        if (getGameState().getNumRoundStage() == 0){
+                        betEval = 1;
+                        if (getGameState().getNumRoundStage() == 0) {
                             handEval = 1;
                         } else handEval = 0;
                         break;
@@ -211,7 +260,26 @@ public class CardAssassin extends Player {
                         handEval = 0;
                         break;
                 }
+            } else scrutinizeHand();
 
+        }
+
+        private void scrutinizeHand(){
+            HandRanks myHand = evaluatePlayerHand();
+            switch (myHand){
+                case ROYAL_FLUSH, STRAIGHT_FLUSH, FOUR_OF_A_KIND, FULL_HOUSE:
+                    betEval = 2.5;
+                    handEval = 2;
+                    break;
+                case FLUSH, STRAIGHT, THREE_OF_A_KIND:
+                    betEval = 1.5;
+                    handEval = 1;
+                    break;
+                default:
+                    betEval = 1;
+                    handEval = 0;
+                    break;
+            }
         }
 
 
