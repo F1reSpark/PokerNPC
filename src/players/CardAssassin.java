@@ -52,12 +52,14 @@ public class CardAssassin extends Player {
                 raise((int) (getGameState().getTableMinBet() * betEval));
             } else call();
         } else {
-            if (shouldCall()) {
-                call();
-            } else if (shouldCheck()) {
-                check();
+            if (isBetActive()){
+                if (shouldCall()) {
+                    call();
+                } else fold();
             } else {
-                fold();
+                if (shouldCheck()) {
+                    check();
+                } else fold();
             }
         }
     }
@@ -123,18 +125,16 @@ public class CardAssassin extends Player {
                     case ROYAL_FLUSH, STRAIGHT_FLUSH, FOUR_OF_A_KIND, FULL_HOUSE, FLUSH, STRAIGHT, THREE_OF_A_KIND, TWO_PAIR:
                         return true;
                     case PAIR:
-                        if (getGameState().getNumRoundStage() < 5) {
+                        if (getGameState().getNumRoundStage() < 4) {
                             return true;
                         } else return false;
                     default:
-                        return false;
+                        if (getGameState().getNumRoundStage() < 3) {
+                            return true;
+                        } else return false;
                 }
             }
-        } else {
-            if(shouldCall()){
-                call();
-            }
-            return false;}
+        } else {return false;}
     }
 
     @Override
@@ -261,8 +261,7 @@ public class CardAssassin extends Player {
                         break;
                 }
             } else scrutinizeHand();
-
-        }
+     }
 
         private void scrutinizeHand(){
             HandRanks myHand = evaluatePlayerHand();
