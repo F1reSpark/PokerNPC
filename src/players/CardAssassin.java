@@ -41,6 +41,7 @@ public class CardAssassin extends Player {
         notedSuit1 = getHandCards().get(0).getSuit();
         notedSuit2 = getHandCards().get(1).getSuit();
 
+
         evalHand();
         if (shouldFold()) {
             fold();
