@@ -69,25 +69,25 @@ public class CardAssassin extends Player {
     protected boolean shouldFold() {
         HandRanks myHand = evaluatePlayerHand();
         if (getGameState().getNumRoundStage() != 0){
-            if (notedValue1 == 2 && notedValue2 == 7 && notedSuit1 != notedSuit2) {
+            if (notedValue1 == 2 && notedValue2 == 7 && notedSuit1 != notedSuit2 && getGameState().getNumRoundStage() <= 1) {
                 return true;
-            } else if (notedValue1 == 7 && notedValue2 == 2 && notedSuit1 != notedSuit2) {
+            } else if (notedValue1 == 7 && notedValue2 == 2 && notedSuit1 != notedSuit2 && (getGameState().getNumRoundStage() > 1 || isBetActive())) {
                 return true;
-            } else if (notedValue1 == 2 && notedValue2 == 8 && notedSuit1 != notedSuit2) {
+            } else if (notedValue1 == 2 && notedValue2 == 8 && notedSuit1 != notedSuit2 && (getGameState().getNumRoundStage() > 1 || isBetActive())) {
                 return true;
-            } else if (notedValue1 == 8 && notedValue2 == 2 && notedSuit1 != notedSuit2) {
+            } else if (notedValue1 == 8 && notedValue2 == 2 && notedSuit1 != notedSuit2 && (getGameState().getNumRoundStage() > 1 || isBetActive())) {
                 return true;
-            } else if (notedValue1 == 3 && notedValue2 == 8 && notedSuit1 != notedSuit2) {
+            } else if (notedValue1 == 3 && notedValue2 == 8 && notedSuit1 != notedSuit2 && (getGameState().getNumRoundStage() > 1 || isBetActive())) {
                 return true;
-            } else if (notedValue1 == 8 && notedValue2 == 3 && notedSuit1 != notedSuit2) {
+            } else if (notedValue1 == 8 && notedValue2 == 3 && notedSuit1 != notedSuit2 && (getGameState().getNumRoundStage() > 1 || isBetActive())) {
                 return true;
-            } else if (notedValue1 == 2 && notedValue2 == 9 && notedSuit1 != notedSuit2) {
+            } else if (notedValue1 == 2 && notedValue2 == 9 && notedSuit1 != notedSuit2 && (getGameState().getNumRoundStage() > 1 || isBetActive())) {
                 return true;
-            } else if (notedValue1 == 9 && notedValue2 == 2 && notedSuit1 != notedSuit2) {
+            } else if (notedValue1 == 9 && notedValue2 == 2 && notedSuit1 != notedSuit2 && (getGameState().getNumRoundStage() > 1 || isBetActive())) {
                 return true;
-            } else if (notedValue1 == 2 && notedValue2 == 6 && notedSuit1 != notedSuit2) {
+            } else if (notedValue1 == 2 && notedValue2 == 6 && notedSuit1 != notedSuit2 && (getGameState().getNumRoundStage() > 1 || isBetActive())) {
                 return true;
-            } else if (notedValue1 == 6 && notedValue2 == 2 && notedSuit1 != notedSuit2) {
+            } else if (notedValue1 == 6 && notedValue2 == 2 && notedSuit1 != notedSuit2 && (getGameState().getNumRoundStage() > 1 || isBetActive())) {
                 return true;
             } else {
                 if (getGameState().getTableBet() > getBank() * 0.5 && handEval == 0) {
@@ -99,11 +99,11 @@ public class CardAssassin extends Player {
         } else {
             switch (myHand){
                 case HIGH_CARD:
-                    if(isBetActive() && getGameState().getNumRoundStage() > 2){
+                    if(isBetActive() && getGameState().getNumRoundStage() > 3){
                         return true;
                     } else return false;
                 case PAIR:
-                    if (isBetActive() && getGameState().getNumRoundStage() > 3){
+                    if (isBetActive() && getGameState().getNumRoundStage() > 4){
                         return true;
                     } else return false;
             }
